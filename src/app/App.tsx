@@ -38,11 +38,20 @@ export default function App() {
       const file = await fetchEventPositions();
       if (cancelled) return;
       if (file) {
+        const hasEvents =
+          Array.isArray(file.events) && file.events.length > 0;
         const hasPositions =
           file.positions && Object.keys(file.positions).length > 0;
         const hasTrackCount =
           typeof file.trackCount === "number" && file.trackCount >= 1;
-        if (hasPositions || hasTrackCount) {
+        const hasMeta =
+          file.title !== undefined || file.subtitle !== undefined;
+        if (
+          hasEvents ||
+          hasPositions ||
+          hasTrackCount ||
+          hasMeta
+        ) {
           setRoadmapData(applyEventPositionsFile(initialRoadmapData, file));
         }
       }

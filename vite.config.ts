@@ -42,7 +42,12 @@ function eventPositionsApiPlugin() {
               JSON.stringify({
                 updatedAt: null,
                 positions: {},
-              } satisfies { updatedAt: null; positions: Record<string, unknown> }),
+                events: [],
+              } satisfies {
+                updatedAt: null
+                positions: Record<string, unknown>
+                events: unknown[]
+              }),
             )
           }
           return
@@ -56,14 +61,22 @@ function eventPositionsApiPlugin() {
           req.on('end', () => {
             try {
               const parsed = JSON.parse(body) as unknown
-              if (
-                typeof parsed !== 'object' ||
-                parsed === null ||
-                !('positions' in parsed) ||
-                typeof (parsed as { positions: unknown }).positions !== 'object'
-              ) {
+              if (typeof parsed !== 'object' || parsed === null) {
                 res.statusCode = 400
-                res.end(JSON.stringify({ error: 'Invalid body: expected { positions }' }))
+                res.end(JSON.stringify({ error: 'Invalid body' }))
+                return
+              }
+              const rec = parsed as Record<string, unknown>
+              const hasEvents = Array.isArray(rec.events)
+              const hasPositions =
+                'positions' in rec && typeof rec.positions === 'object' && rec.positions !== null
+              if (!hasEvents && !hasPositions) {
+                res.statusCode = 400
+                res.end(
+                  JSON.stringify({
+                    error: 'Invalid body: expected events array and/or positions object',
+                  }),
+                )
                 return
               }
               lastPositionsFileWriteByApiAt = Date.now()

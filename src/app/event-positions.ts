@@ -6,32 +6,38 @@ import {
 
 export const EVENT_POSITIONS_API = "/api/event-positions";
 
-export type EventPositionFields = Pick<
-  RoadmapEvent,
-  "left" | "width" | "top" | "track"
+/** Legacy layout patches merged into code-default events by id. */
+export type EventPositionFields = Partial<
+  Pick<
+    RoadmapEvent,
+    "left" | "width" | "top" | "track" | "title" | "description" | "color"
+  >
 >;
 
 export interface EventPositionsFile {
   updatedAt: string | null;
   /** When set, restores swimlane count (must be >= 1). */
   trackCount?: number;
-  positions: Record<string, EventPositionFields>;
+  title?: string;
+  subtitle?: string;
+  /**
+   * Full roadmap events (preferred). When present, replaces the in-code event list
+   * so titles, new cards, and layout all round-trip through the JSON file.
+   */
+  events?: RoadmapEvent[];
+  /**
+   * Legacy: per-id patches only. Used when `events` is absent (older `event-positions.json`).
+   */
+  positions?: Record<string, EventPositionFields>;
 }
 
 export function extractEventPositions(data: RoadmapData): EventPositionsFile {
-  const positions: Record<string, EventPositionFields> = {};
-  for (const e of data.events) {
-    positions[e.id] = {
-      left: e.left,
-      width: e.width,
-      top: e.top,
-      track: e.track,
-    };
-  }
   return {
     updatedAt: new Date().toISOString(),
     trackCount: data.trackCount,
-    positions,
+    title: data.title,
+    subtitle: data.subtitle,
+    events: data.events,
   };
 }
 
@@ -39,10 +45,25 @@ export function applyEventPositionsFile(
   base: RoadmapData,
   file: EventPositionsFile,
 ): RoadmapData {
-  let result = mergePositionsIntoRoadmap(base, file.positions ?? {});
-  if (typeof file.trackCount === "number" && file.trackCount >= 1) {
-    result = { ...result, trackCount: file.trackCount };
+  const trackCount =
+    typeof file.trackCount === "number" && file.trackCount >= 1
+      ? file.trackCount
+      : base.trackCount;
+
+  if (Array.isArray(file.events)) {
+    return {
+      ...base,
+      title: file.title ?? base.title,
+      subtitle: file.subtitle ?? base.subtitle,
+      trackCount,
+      events: file.events,
+    };
   }
+
+  let result = mergePositionsIntoRoadmap(base, file.positions ?? {});
+  result = { ...result, trackCount };
+  if (file.title !== undefined) result = { ...result, title: file.title };
+  if (file.subtitle !== undefined) result = { ...result, subtitle: file.subtitle };
   return result;
 }
 
@@ -69,7 +90,22 @@ export async function fetchEventPositions(): Promise<EventPositionsFile | null> 
     const res = await fetch(EVENT_POSITIONS_API);
     if (!res.ok) return null;
     const data = (await res.json()) as EventPositionsFile;
-    if (!data || typeof data.positions !== "object") return null;
+    if (!data || typeof data !== "object") return null;
+    const hasEvents = Array.isArray(data.events);
+    const hasPositions =
+      data.positions != null && typeof data.positions === "object";
+    const hasTrackCount =
+      typeof data.trackCount === "number" && data.trackCount >= 1;
+    const hasMeta =
+      data.title !== undefined || data.subtitle !== undefined;
+    if (
+      !hasEvents &&
+      !hasPositions &&
+      !hasTrackCount &&
+      !hasMeta
+    ) {
+      return null;
+    }
     return data;
   } catch {
     return null;
