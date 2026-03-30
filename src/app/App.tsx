@@ -147,10 +147,9 @@ export default function App() {
             <Save size={16} className="shrink-0 text-amber-200" />
             <span
               className="truncate text-xs leading-snug text-amber-100"
-              title="JSON saves need Vite’s dev or preview server (not opening dist/index.html directly). Run: npm run dev — or npm run build && npm run preview"
+              title="Run npm run dev (starts the JSON API + Vite). For preview build: npm run preview:local. Port 3040 must be free; override with EVENT_POSITIONS_API_PORT."
               >
-                Not saved — use npm run dev or npm run preview (not a static file
-                URL)
+                Not saved — start the data API (npm run dev or dev:api)
             </span>
           </>
         ) : (
