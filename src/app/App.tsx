@@ -147,9 +147,10 @@ export default function App() {
             <Save size={16} className="shrink-0 text-amber-200" />
             <span
               className="truncate text-xs leading-snug text-amber-100"
-              title="Run npm run dev so the API can write event-positions.json"
-            >
-              Not saved — dev server / API required for JSON file
+              title="JSON saves need Vite’s dev or preview server (not opening dist/index.html directly). Run: npm run dev — or npm run build && npm run preview"
+              >
+                Not saved — use npm run dev or npm run preview (not a static file
+                URL)
             </span>
           </>
         ) : (
