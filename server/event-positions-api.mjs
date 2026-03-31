@@ -1,6 +1,8 @@
 /**
- * Local API for reading/writing project-root event-positions.json.
- * Run via: npm run dev:api (or it starts with npm run dev).
+ * JSON API for roadmap state (+ optional static dist/ for one-process deploy, e.g. Railway).
+ *
+ * Local dev: npm run dev:api  (port 3040, JSON at project root)
+ * Railway: set PORT (injected), optional SERVE_STATIC=true, optional EVENT_POSITIONS_PATH for a volume.
  */
 import express from 'express'
 import fs from 'fs'
@@ -9,8 +11,15 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
-const EVENT_POSITIONS_PATH = path.join(ROOT, 'event-positions.json')
-const PORT = Number(process.env.EVENT_POSITIONS_API_PORT || 3040)
+const EVENT_POSITIONS_PATH =
+  process.env.EVENT_POSITIONS_PATH ||
+  path.join(ROOT, 'event-positions.json')
+const PORT = Number(
+  process.env.PORT || process.env.EVENT_POSITIONS_API_PORT || 3040,
+)
+const HOST = process.env.HOST || '0.0.0.0'
+const SERVE_STATIC =
+  process.env.SERVE_STATIC === '1' || process.env.SERVE_STATIC === 'true'
 
 const app = express()
 app.use(express.json({ limit: '10mb' }))
@@ -72,6 +81,18 @@ function handlePutPost(req, res) {
 app.put('/api/event-positions', handlePutPost)
 app.post('/api/event-positions', handlePutPost)
 
-app.listen(PORT, () => {
-  console.log(`[event-positions] http://localhost:${PORT}/api/event-positions`)
+const DIST = path.join(ROOT, 'dist')
+if (SERVE_STATIC && fs.existsSync(path.join(DIST, 'index.html'))) {
+  app.use(express.static(DIST))
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    res.sendFile(path.join(DIST, 'index.html'))
+  })
+  console.log(`[event-positions] also serving static from ${DIST}`)
+}
+
+app.listen(PORT, HOST, () => {
+  console.log(
+    `[event-positions] listening http://${HOST}:${PORT}/api/event-positions`,
+  )
 })
