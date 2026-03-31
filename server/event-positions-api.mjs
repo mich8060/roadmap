@@ -22,6 +22,33 @@ const SERVE_STATIC =
   process.env.SERVE_STATIC === '1' || process.env.SERVE_STATIC === 'true'
 
 const app = express()
+
+/**
+ * CORS: Vercel (or any other origin) calling Railway directly.
+ * - Omit `CORS_ORIGIN` or set `*` → Allow-Origin: * (simplest).
+ * - Set `CORS_ORIGIN=https://your-app.vercel.app` (comma-separate multiple).
+ */
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+  const configured = process.env.CORS_ORIGIN?.trim()
+  if (!configured || configured === '*') {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+  } else {
+    const allowed = configured.split(',').map((s) => s.trim()).filter(Boolean)
+    if (origin && allowed.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin)
+    }
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204
+    res.end()
+    return
+  }
+  next()
+})
+
 app.use(express.json({ limit: '10mb' }))
 
 function emptyPayload() {

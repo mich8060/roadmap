@@ -4,7 +4,15 @@ import {
   RoadmapEvent,
 } from "./roadmap-data";
 
-export const EVENT_POSITIONS_API = "/api/event-positions";
+/** Vercel/production: set `VITE_EVENT_POSITIONS_API_BASE` to your Railway service URL (no `/api` path). */
+function resolveEventPositionsApiUrl(): string {
+  const base = import.meta.env.VITE_EVENT_POSITIONS_API_BASE?.trim() ?? "";
+  if (!base) return "/api/event-positions";
+  const normalized = base.replace(/\/$/, "");
+  return `${normalized}/api/event-positions`;
+}
+
+export const EVENT_POSITIONS_API = resolveEventPositionsApiUrl();
 
 /** Legacy layout patches merged into code-default events by id. */
 export type EventPositionFields = Partial<

@@ -1,0 +1,7 @@
+# Railway: Node service — API only (Vercel serves the static app).
+# Set root to repo root. Start uses package.json "start".
+# Recommended: add a Volume, mount e.g. /data, env EVENT_POSITIONS_PATH=/data/event-positions.json
+
+[deploy]
+healthcheckPath = "/api/event-positions"
+healthcheckTimeout = 30
