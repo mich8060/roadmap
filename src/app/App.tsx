@@ -11,9 +11,11 @@ import {
 } from "./roadmap-data";
 import {
   applyEventPositionsFile,
+  EVENT_POSITIONS_API,
   fetchEventPositions,
   getInitialRoadmapDataFromCode,
   persistEventPositions,
+  usesRemoteEventPositionsApi,
 } from "./event-positions";
 import { insertTrackAfter } from "./utils/roadmap-layout";
 
@@ -31,6 +33,27 @@ export default function App() {
   );
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [createEventTrackIndex, setCreateEventTrackIndex] = useState(0);
+  /** Save line + Edit toggle; reveal with ⌘E (Mac) or Ctrl+E (Windows/Linux). */
+  const [editorChromeVisible, setEditorChromeVisible] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) return;
+      if (e.key.toLowerCase() !== "e") return;
+      e.preventDefault();
+      setEditorChromeVisible((v) => !v);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!editorChromeVisible) {
+      setCanvasEditMode(false);
+      setInlineEditEventId(null);
+      setCreateEventOpen(false);
+    }
+  }, [editorChromeVisible]);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,9 +170,19 @@ export default function App() {
             <Save size={16} className="shrink-0 text-amber-200" />
             <span
               className="truncate text-xs leading-snug text-amber-100"
-              title="Run npm run dev (starts the JSON API + Vite). For preview build: npm run preview:local. Port 3040 must be free; override with EVENT_POSITIONS_API_PORT."
-              >
-                Not saved — start the data API (npm run dev or dev:api)
+              title={
+                import.meta.env.DEV
+                  ? "Run npm run dev so Vite proxies /api to the local Express API on port 3040."
+                  : usesRemoteEventPositionsApi()
+                    ? `PUT target: ${EVENT_POSITIONS_API}. In DevTools → Network, check status (expect 200). Verify Railway service is running, public URL enabled, and CORS_ORIGIN includes your Vercel origin if not using *.`
+                    : "This build has no Railway URL. In Vercel → Project → Settings → Environment Variables, add VITE_EVENT_POSITIONS_API_BASE=https://your-service.up.railway.app (no trailing slash), then redeploy."
+              }
+            >
+              {import.meta.env.DEV
+                ? "Not saved — run npm run dev (API + Vite)"
+                : usesRemoteEventPositionsApi()
+                  ? "Not saved — Railway request failed (see Network tab)"
+                  : "Not saved — add VITE_EVENT_POSITIONS_API_BASE on Vercel + redeploy"}
             </span>
           </>
         ) : (
@@ -185,7 +218,7 @@ export default function App() {
     <div className="size-full relative">
       <RoadmapViewer
         data={roadmapData}
-        headerActions={headerActions}
+        headerActions={editorChromeVisible ? headerActions : undefined}
         layoutEditMode={canvasEditMode}
         onEventClick={(event) => {
           console.log("Event clicked:", event);

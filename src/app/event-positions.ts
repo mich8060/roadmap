@@ -4,15 +4,26 @@ import {
   RoadmapEvent,
 } from "./roadmap-data";
 
-/** Vercel/production: set `VITE_EVENT_POSITIONS_API_BASE` to your Railway service URL (no `/api` path). */
+/**
+ * Vercel/production: set `VITE_EVENT_POSITIONS_API_BASE` to your Railway **root**
+ * (e.g. https://xxxx.up.railway.app). If you paste the full `/api/event-positions` URL, it still works.
+ */
 function resolveEventPositionsApiUrl(): string {
-  const base = import.meta.env.VITE_EVENT_POSITIONS_API_BASE?.trim() ?? "";
-  if (!base) return "/api/event-positions";
-  const normalized = base.replace(/\/$/, "");
-  return `${normalized}/api/event-positions`;
+  const raw = import.meta.env.VITE_EVENT_POSITIONS_API_BASE?.trim() ?? "";
+  if (!raw) return "/api/event-positions";
+  let base = raw.replace(/\/$/, "");
+  if (base.endsWith("/api/event-positions")) {
+    return base;
+  }
+  return `${base}/api/event-positions`;
 }
 
 export const EVENT_POSITIONS_API = resolveEventPositionsApiUrl();
+
+/** True when the bundle calls an absolute URL (e.g. Railway) — set at build via VITE_EVENT_POSITIONS_API_BASE. */
+export function usesRemoteEventPositionsApi(): boolean {
+  return EVENT_POSITIONS_API.startsWith("http");
+}
 
 /** Legacy layout patches merged into code-default events by id. */
 export type EventPositionFields = Partial<
