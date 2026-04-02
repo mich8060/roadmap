@@ -6,14 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import type { RoadmapEvent } from "../roadmap-data";
+import type { RoadmapEvent, RoadmapEventStatus } from "../roadmap-data";
+import { ROADMAP_STATUS_OPTIONS, STATUS_LABEL } from "../roadmap-status";
 import { TRACK_EVENT_TOP_BASE, TRACK_HEIGHT_PX } from "../utils/roadmap-layout";
 import {
   TIMELINE_MONTH_BLOCKS,
   eventRectFromTimelineWeeks,
 } from "../utils/timeline-grid";
-
-const DEFAULT_EVENT_COLOR = "#0384c6";
 
 export interface EventCreateModalProps {
   open: boolean;
@@ -30,6 +29,10 @@ export function EventCreateModal({
 }: EventCreateModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<RoadmapEventStatus>("on_track");
+  const [riskIssue, setRiskIssue] = useState("");
+  const [riskMitigation, setRiskMitigation] = useState("");
+  const [riskNeededToUnblock, setRiskNeededToUnblock] = useState("");
   const [monthIndex, setMonthIndex] = useState(0);
   const [startWeek, setStartWeek] = useState(1);
   const [durationWeeks, setDurationWeeks] = useState(4);
@@ -41,6 +44,10 @@ export function EventCreateModal({
     if (!open) return;
     setTitle("");
     setDescription("");
+    setStatus("on_track");
+    setRiskIssue("");
+    setRiskMitigation("");
+    setRiskNeededToUnblock("");
     setMonthIndex(0);
     setStartWeek(1);
     setDurationWeeks(4);
@@ -64,16 +71,26 @@ export function EventCreateModal({
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const top = TRACK_EVENT_TOP_BASE + trackIndex * TRACK_HEIGHT_PX;
-    onCreate({
+    const st = status;
+    const payload: RoadmapEvent = {
       id,
       title: t,
       description: description.trim(),
       left,
       width,
       top,
-      color: DEFAULT_EVENT_COLOR,
+      color: "#ffffff",
       track: trackIndex,
-    });
+      status: st,
+    };
+    if (st === "at_risk" || st === "blocked") {
+      if (riskIssue.trim()) payload.riskIssue = riskIssue.trim();
+      if (riskMitigation.trim()) payload.riskMitigation = riskMitigation.trim();
+      if (riskNeededToUnblock.trim()) {
+        payload.riskNeededToUnblock = riskNeededToUnblock.trim();
+      }
+    }
+    onCreate(payload);
     onOpenChange(false);
   };
 
@@ -111,6 +128,68 @@ export function EventCreateModal({
               placeholder="Optional description"
             />
           </div>
+          <div>
+            <label
+              htmlFor="event-create-status"
+              className="block text-sm font-medium mb-1.5"
+            >
+              Roadmap status
+            </label>
+            <select
+              id="event-create-status"
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value as RoadmapEventStatus)
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              {ROADMAP_STATUS_OPTIONS.map((v) => (
+                <option key={v} value={v}>
+                  {STATUS_LABEL[v]}
+                </option>
+              ))}
+            </select>
+          </div>
+          {(status === "at_risk" || status === "blocked") && (
+            <div className="space-y-3 rounded-md border border-amber-200/80 bg-amber-50/50 px-3 py-3">
+              <p className="text-xs font-medium text-amber-950">
+                Optional: issues, mitigation, and what would unblock
+              </p>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  What are the issues?
+                </label>
+                <textarea
+                  value={riskIssue}
+                  onChange={(e) => setRiskIssue(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  What is being done now?
+                </label>
+                <textarea
+                  value={riskMitigation}
+                  onChange={(e) => setRiskMitigation(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">
+                  What is needed to unblock?
+                </label>
+                <textarea
+                  value={riskNeededToUnblock}
+                  onChange={(e) => setRiskNeededToUnblock(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+            </div>
+          )}
           <div>
             <label
               htmlFor="event-create-month"

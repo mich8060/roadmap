@@ -29,7 +29,17 @@ export function usesRemoteEventPositionsApi(): boolean {
 export type EventPositionFields = Partial<
   Pick<
     RoadmapEvent,
-    "left" | "width" | "top" | "track" | "title" | "description" | "color"
+    | "left"
+    | "width"
+    | "top"
+    | "track"
+    | "title"
+    | "description"
+    | "color"
+    | "status"
+    | "riskIssue"
+    | "riskMitigation"
+    | "riskNeededToUnblock"
   >
 >;
 
@@ -39,6 +49,9 @@ export interface EventPositionsFile {
   trackCount?: number;
   title?: string;
   subtitle?: string;
+  whyThisMatters?: string;
+  valueSnapshot?: string;
+  capacityBandExplanation?: string;
   /**
    * Full roadmap events (preferred). When present, replaces the in-code event list
    * so titles, new cards, and layout all round-trip through the JSON file.
@@ -56,6 +69,9 @@ export function extractEventPositions(data: RoadmapData): EventPositionsFile {
     trackCount: data.trackCount,
     title: data.title,
     subtitle: data.subtitle,
+    whyThisMatters: data.whyThisMatters,
+    valueSnapshot: data.valueSnapshot,
+    capacityBandExplanation: data.capacityBandExplanation,
     events: data.events,
   };
 }
@@ -76,6 +92,10 @@ export function applyEventPositionsFile(
       subtitle: file.subtitle ?? base.subtitle,
       trackCount,
       events: file.events,
+      whyThisMatters: file.whyThisMatters ?? base.whyThisMatters,
+      valueSnapshot: file.valueSnapshot ?? base.valueSnapshot,
+      capacityBandExplanation:
+        file.capacityBandExplanation ?? base.capacityBandExplanation,
     };
   }
 
@@ -83,6 +103,18 @@ export function applyEventPositionsFile(
   result = { ...result, trackCount };
   if (file.title !== undefined) result = { ...result, title: file.title };
   if (file.subtitle !== undefined) result = { ...result, subtitle: file.subtitle };
+  if (file.whyThisMatters !== undefined) {
+    result = { ...result, whyThisMatters: file.whyThisMatters };
+  }
+  if (file.valueSnapshot !== undefined) {
+    result = { ...result, valueSnapshot: file.valueSnapshot };
+  }
+  if (file.capacityBandExplanation !== undefined) {
+    result = {
+      ...result,
+      capacityBandExplanation: file.capacityBandExplanation,
+    };
+  }
   return result;
 }
 
@@ -116,7 +148,11 @@ export async function fetchEventPositions(): Promise<EventPositionsFile | null> 
     const hasTrackCount =
       typeof data.trackCount === "number" && data.trackCount >= 1;
     const hasMeta =
-      data.title !== undefined || data.subtitle !== undefined;
+      data.title !== undefined ||
+      data.subtitle !== undefined ||
+      data.whyThisMatters !== undefined ||
+      data.valueSnapshot !== undefined ||
+      data.capacityBandExplanation !== undefined;
     if (
       !hasEvents &&
       !hasPositions &&

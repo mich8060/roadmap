@@ -68,7 +68,11 @@ export default function App() {
         const hasTrackCount =
           typeof file.trackCount === "number" && file.trackCount >= 1;
         const hasMeta =
-          file.title !== undefined || file.subtitle !== undefined;
+          file.title !== undefined ||
+          file.subtitle !== undefined ||
+          file.whyThisMatters !== undefined ||
+          file.valueSnapshot !== undefined ||
+          file.capacityBandExplanation !== undefined;
         if (
           hasEvents ||
           hasPositions ||

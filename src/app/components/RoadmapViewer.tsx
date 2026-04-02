@@ -2,6 +2,12 @@ import { RoadmapEvent, RoadmapData } from "../roadmap-data";
 import { QuarterlyTimeline } from "./QuarterlyTimeline";
 import { Track } from "./Track";
 import {
+  STATUS_BADGE_CLASS,
+  STATUS_BORDER,
+  STATUS_LABEL,
+  eventEffectiveStatus,
+} from "../roadmap-status";
+import {
   useState,
   useRef,
   useEffect,
@@ -308,7 +314,9 @@ export function RoadmapViewer({
       >
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold">{data.title}</h1>
-          <p className="text-lg font-normal opacity-90">{data.subtitle}</p>
+          <p className="text-sm font-normal leading-relaxed opacity-90">
+            {data.subtitle}
+          </p>
         </div>
         {headerActions ? (
           <div className="flex shrink-0 items-center justify-start min-[720px]:justify-end">
@@ -323,7 +331,6 @@ export function RoadmapViewer({
         ref={canvasScrollRef}
         className="fixed top-[100px] left-0 right-0 overflow-auto"
         style={{
-          height: tracksContentHeightPx,
           maxHeight: "calc(100vh - 100px)",
         }}
       >
@@ -349,10 +356,18 @@ export function RoadmapViewer({
               }}
             >
               <div
-                className="absolute top-1/2 max-w-[min(24rem,calc(100%-48px))] -translate-y-1/2 rounded-md border border-slate-200 bg-white px-4 py-2 shadow-md text-sm font-semibold tracking-wide text-slate-700"
+                className="absolute bottom-2 max-w-[min(36rem,calc(100%-48px))] rounded-md border border-slate-200 bg-white px-3 py-2 shadow-md text-slate-700"
                 style={{ left: RESOURCE_LABEL_CONTENT_LEFT_PX }}
               >
-                With Additional Resources
+                <p className="text-sm font-semibold tracking-wide text-slate-800">
+                  Additional capacity (stretch work)
+                </p>
+                <p className="mt-0.5 text-xs font-normal leading-snug text-slate-600">
+                  {(
+                    data.capacityBandExplanation?.trim() ||
+                    "Stretch work we can’t staff yet—not the same as Blocked on a card."
+                  ).trim()}
+                </p>
               </div>
             </div>
           )}
@@ -440,58 +455,69 @@ export function RoadmapViewer({
             })}
 
           {/* Events */}
-          {data.events.map((event) => (
-            <div
-              key={event.id}
-              className={`absolute z-20 -translate-y-1/2 shadow-lg transition-shadow group ${
-                layoutEditMode
-                  ? "cursor-grab active:cursor-grabbing hover:shadow-xl"
-                  : "cursor-default hover:shadow-lg"
-              }`}
-              style={{
-                left: `${event.left}px`,
-                width: `${event.width}px`,
-                top: `${trackBandTopPx(event.track) + TRACK_HEIGHT_PX / 2}px`,
-                backgroundColor: event.color,
-              }}
-              onClick={() => onEventClick?.(event)}
-              onDoubleClick={(e) => {
-                if (!layoutEditMode) return;
-                e.stopPropagation();
-                onEventDoubleClick?.(event);
-              }}
-              onMouseDown={(e) => handleDragStart(e, event)}
-            >
-              {/* Left resize handle */}
+          {data.events.map((event) => {
+            const st = eventEffectiveStatus(event);
+            return (
               <div
-                className={`absolute left-0 top-0 bottom-0 w-2 transition-opacity ${
+                key={event.id}
+                className={`absolute z-20 -translate-y-1/2 border border-slate-200 bg-white shadow-lg transition-shadow group box-border overflow-hidden rounded-sm ${
                   layoutEditMode
-                    ? "cursor-ew-resize hover:bg-white/30 opacity-0 group-hover:opacity-100"
-                    : "pointer-events-none opacity-0"
+                    ? "cursor-grab active:cursor-grabbing hover:shadow-xl"
+                    : "cursor-default hover:shadow-lg"
                 }`}
-                onMouseDown={(e) => handleResizeStart(e, event, "left")}
-              />
-              
-              <div className="px-3 py-2 text-white">
-                <h3 className="text-md font-medium">
-                  {event.title}
-                </h3>
-                <p className="text-sm opacity-90">
-                  {event.description}
-                </p>
-              </div>
+                style={{
+                  left: `${event.left}px`,
+                  width: `${event.width}px`,
+                  top: `${trackBandTopPx(event.track) + TRACK_HEIGHT_PX / 2}px`,
+                  borderLeftWidth: 4,
+                  borderLeftStyle: "solid",
+                  borderLeftColor: STATUS_BORDER[st],
+                }}
+                onClick={() => onEventClick?.(event)}
+                onDoubleClick={(e) => {
+                  if (!layoutEditMode) return;
+                  e.stopPropagation();
+                  onEventDoubleClick?.(event);
+                }}
+                onMouseDown={(e) => handleDragStart(e, event)}
+              >
+                {/* Left resize handle */}
+                <div
+                  className={`absolute left-0 top-0 bottom-0 w-2 transition-opacity z-10 ${
+                    layoutEditMode
+                      ? "cursor-ew-resize hover:bg-slate-900/10 opacity-0 group-hover:opacity-100"
+                      : "pointer-events-none opacity-0"
+                  }`}
+                  onMouseDown={(e) => handleResizeStart(e, event, "left")}
+                />
 
-              {/* Right resize handle */}
-              <div
-                className={`absolute right-0 top-0 bottom-0 w-2 transition-opacity ${
-                  layoutEditMode
-                    ? "cursor-ew-resize hover:bg-white/30 opacity-0 group-hover:opacity-100"
-                    : "pointer-events-none opacity-0"
-                }`}
-                onMouseDown={(e) => handleResizeStart(e, event, "right")}
-              />
-            </div>
-          ))}
+                <div className="flex flex-col gap-0.5 px-3 py-2 pr-2 text-slate-900">
+                  <span
+                    className={`self-start inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide ${STATUS_BADGE_CLASS[st]}`}
+                    title={STATUS_LABEL[st]}
+                  >
+                    {STATUS_LABEL[st]}
+                  </span>
+                  <h3 className="text-sm font-semibold min-w-0 leading-tight">
+                    {event.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-tight">
+                    {event.description}
+                  </p>
+                </div>
+
+                {/* Right resize handle */}
+                <div
+                  className={`absolute right-0 top-0 bottom-0 w-2 transition-opacity z-10 ${
+                    layoutEditMode
+                      ? "cursor-ew-resize hover:bg-slate-900/10 opacity-0 group-hover:opacity-100"
+                      : "pointer-events-none opacity-0"
+                  }`}
+                  onMouseDown={(e) => handleResizeStart(e, event, "right")}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

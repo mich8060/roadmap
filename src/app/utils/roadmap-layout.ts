@@ -1,6 +1,6 @@
 import { RoadmapData } from "../roadmap-data";
 
-export const TRACK_HEIGHT_PX = 88;
+export const TRACK_HEIGHT_PX = 100;
 export const TRACK_EVENT_TOP_BASE = 128;
 /** Top offset for swimlane bands; matches `Track.tsx`. */
 export const TRACK_BAND_TOP_OFFSET = 116;

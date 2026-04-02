@@ -5,7 +5,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { RoadmapEvent } from "../roadmap-data";
+import type { RoadmapEvent, RoadmapEventStatus } from "../roadmap-data";
+import { ROADMAP_STATUS_OPTIONS, STATUS_LABEL } from "../roadmap-status";
 
 interface EventEditModalProps {
   event: RoadmapEvent | null;
@@ -58,6 +59,83 @@ export function EventEditModal({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <div>
+                <label
+                  htmlFor="event-edit-status"
+                  className="block text-sm font-medium mb-1.5"
+                >
+                  Roadmap status
+                </label>
+                <select
+                  id="event-edit-status"
+                  value={event.status ?? "on_track"}
+                  onChange={(e) =>
+                    onUpdate(event.id, {
+                      status: e.target.value as RoadmapEventStatus,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  {ROADMAP_STATUS_OPTIONS.map((v) => (
+                    <option key={v} value={v}>
+                      {STATUS_LABEL[v]}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Shown on the timeline card. Light blue swimlanes are about
+                  capacity, not this status.
+                </p>
+              </div>
+              {((event.status ?? "on_track") === "at_risk" ||
+                (event.status ?? "on_track") === "blocked") && (
+                <div className="space-y-3 rounded-md border border-amber-200/80 bg-amber-50/50 px-3 py-3">
+                  <p className="text-xs font-medium text-amber-950">
+                    Risk detail (issues, mitigation, unblock)
+                  </p>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">
+                      What are the issues?
+                    </label>
+                    <textarea
+                      value={event.riskIssue ?? ""}
+                      onChange={(e) =>
+                        onUpdate(event.id, { riskIssue: e.target.value })
+                      }
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">
+                      What is being done now?
+                    </label>
+                    <textarea
+                      value={event.riskMitigation ?? ""}
+                      onChange={(e) =>
+                        onUpdate(event.id, { riskMitigation: e.target.value })
+                      }
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">
+                      What is needed to unblock?
+                    </label>
+                    <textarea
+                      value={event.riskNeededToUnblock ?? ""}
+                      onChange={(e) =>
+                        onUpdate(event.id, {
+                          riskNeededToUnblock: e.target.value,
+                        })
+                      }
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : null}

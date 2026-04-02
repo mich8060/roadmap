@@ -1,8 +1,11 @@
 {
-  "updatedAt": "2026-03-31T16:39:44.412Z",
+  "updatedAt": "2026-04-02T15:31:49.469Z",
   "trackCount": 11,
   "title": "Design System 2026 Roadmap",
   "subtitle": "Building the foundation for scalable, AI-enabled product development.",
+  "whyThisMatters": "This roadmap makes trade-offs visible: what is on track, what needs attention, and which initiatives only move with more capacity — so planning matches delivery reality.",
+  "valueSnapshot": "• Clear delivery signals: green / yellow / red map to how work is progressing.\n• Honest capacity story: the blue swimlane is stretch work, not hidden backlog.\n• Key risks spell out issues, actions, and what would unblock.",
+  "capacityBandExplanation": "Light blue is stretch work we can’t staff yet—not the same as Blocked on a card.",
   "events": [
     {
       "id": "1",
@@ -16,13 +19,17 @@
     },
     {
       "id": "2",
-      "title": "Documents MVT",
+      "title": "Documents AISquad",
       "description": "Pilot: Design → React",
       "left": 400,
-      "width": 250,
+      "width": 300,
       "top": 216,
       "color": "#0384c6",
-      "track": 1
+      "track": 1,
+      "status": "at_risk",
+      "riskIssue": "We are dependent on research to move forward at this time.",
+      "riskMitigation": "Iterations are done based off of pure usability audits.",
+      "riskNeededToUnblock": "Research findings."
     },
     {
       "id": "3",
@@ -32,7 +39,8 @@
       "width": 800,
       "top": 392,
       "color": "#0384c6",
-      "track": 3
+      "track": 3,
+      "status": "pending"
     },
     {
       "id": "4",
@@ -42,7 +50,8 @@
       "width": 1600,
       "top": 480,
       "color": "#0384c6",
-      "track": 4
+      "track": 4,
+      "status": "pending"
     },
     {
       "id": "5",
@@ -52,7 +61,8 @@
       "width": 600,
       "top": 128,
       "color": "#0384c6",
-      "track": 0
+      "track": 0,
+      "status": "pending"
     },
     {
       "id": "6",
@@ -72,7 +82,8 @@
       "width": 1400,
       "top": 216,
       "color": "#0384c6",
-      "track": 1
+      "track": 1,
+      "status": "pending"
     },
     {
       "id": "8",
@@ -82,7 +93,8 @@
       "width": 400,
       "top": 568,
       "color": "#0384c6",
-      "track": 5
+      "track": 5,
+      "status": "at_risk"
     },
     {
       "id": "9",
@@ -92,7 +104,8 @@
       "width": 400,
       "top": 656,
       "color": "#0384c6",
-      "track": 6
+      "track": 6,
+      "status": "at_risk"
     },
     {
       "id": "10",
@@ -102,7 +115,8 @@
       "width": 600,
       "top": 744,
       "color": "#0384c6",
-      "track": 7
+      "track": 7,
+      "status": "at_risk"
     },
     {
       "id": "11",
@@ -112,7 +126,8 @@
       "width": 350,
       "top": 832,
       "color": "#0384c6",
-      "track": 8
+      "track": 8,
+      "status": "at_risk"
     },
     {
       "id": "12",
@@ -122,7 +137,8 @@
       "width": 400,
       "top": 920,
       "color": "#0384c6",
-      "track": 9
+      "track": 9,
+      "status": "pending"
     },
     {
       "id": "13",
