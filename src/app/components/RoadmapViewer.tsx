@@ -51,6 +51,8 @@ const INSERT_HIT_PX = 40;
 const VIEWPORT_FIXED_LEFT_PX = 24;
 const VIEWPORT_FIXED_RIGHT_PX = 24;
 const RESOURCE_LABEL_CONTENT_LEFT_PX = 24;
+/** Fixed “Additional Capacity” callout; inline CSS so width always applies (Tailwind min() arbitrary values can drop). */
+const ADDITIONAL_CAPACITY_BOX_WIDTH = "min(36rem, calc(100vw - 48px))";
 const DRAG_THRESHOLD_PX = 6;
 
 export function RoadmapViewer({
@@ -354,22 +356,7 @@ export function RoadmapViewer({
                 height: `${RESOURCE_STRIP_HEIGHT_PX}px`,
                 backgroundColor: BLUE_SWIMLANE_BG,
               }}
-            >
-              <div
-                className="absolute bottom-2 max-w-[min(36rem,calc(100%-48px))] rounded-md border border-slate-200 bg-white px-3 py-2 shadow-md text-slate-700"
-                style={{ left: RESOURCE_LABEL_CONTENT_LEFT_PX }}
-              >
-                <p className="text-sm font-semibold tracking-wide text-slate-800">
-                  Additional capacity (stretch work)
-                </p>
-                <p className="mt-0.5 text-xs font-normal leading-snug text-slate-600">
-                  {(
-                    data.capacityBandExplanation?.trim() ||
-                    "Stretch work we can’t staff yet—not the same as Blocked on a card."
-                  ).trim()}
-                </p>
-              </div>
-            </div>
+            />
           )}
 
           {/* Tracks - invisible by default, visible with debug mode */}
@@ -460,7 +447,7 @@ export function RoadmapViewer({
             return (
               <div
                 key={event.id}
-                className={`absolute z-20 -translate-y-1/2 border border-slate-200 bg-white shadow-lg transition-shadow group box-border overflow-hidden rounded-sm ${
+                className={`absolute z-20 -translate-y-1/2 border border-slate-200 bg-white shadow-lg transition-shadow group box-border overflow-hidden ${
                   layoutEditMode
                     ? "cursor-grab active:cursor-grabbing hover:shadow-xl"
                     : "cursor-default hover:shadow-lg"
@@ -520,6 +507,27 @@ export function RoadmapViewer({
           })}
         </div>
       </div>
+
+      {data.trackCount > FIRST_BLUE_TRACK_INDEX ? (
+        <div
+          className="fixed z-[35] box-border rounded-md border border-slate-200 bg-white px-3 py-2 shadow-md text-slate-700 max-w-[300px]"
+          style={{
+            left: RESOURCE_LABEL_CONTENT_LEFT_PX,
+            bottom: RESOURCE_LABEL_CONTENT_LEFT_PX,
+            width: ADDITIONAL_CAPACITY_BOX_WIDTH,
+          }}
+        >
+          <p className="text-sm font-semibold tracking-wide text-slate-800">
+            Additional Capacity
+          </p>
+          <p className="text-xs font-normal leading-snug text-slate-600">
+            {(
+              data.capacityBandExplanation?.trim() ||
+              "Stretch work we can’t staff yet—not the same as Blocked on a card."
+            ).trim()}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
